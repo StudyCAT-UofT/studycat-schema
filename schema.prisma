@@ -97,6 +97,7 @@ model CourseOffering {
     term    Term         @relation(fields: [termId], references: [id], onDelete: Cascade)
     enrolls Enrollment[]
     quizzes Quiz[]
+    modules Module[]
 
     @@unique([courseId, termId])
     @@index([termId])
@@ -114,10 +115,53 @@ model Enrollment {
     // Relations
     user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
     offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+    thetas   Theta[]
 
     @@unique([userId, offeringId])
     @@index([offeringId])
     @@index([offeringRole])
+}
+
+//
+// ========== Modules (per Course Offering) ==========
+//
+
+model Module {
+    id         String @id @default(cuid())
+    offeringId String
+    name       String // Module name (e.g., "Module 1: Introduction")
+
+    createdAt DateTime @default(now())
+
+    // Relations
+    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+    items    Item[]
+    thetas   Theta[]
+
+    @@unique([offeringId, name]) // Unique per offering
+    @@index([offeringId])
+}
+
+//
+// ========== Theta (User Ability per Module) ==========
+//
+
+model Theta {
+    id           String @id @default(cuid())
+    enrollmentId String
+    moduleId     String
+    value        Float // Theta value
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+    module     Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+    @@unique([enrollmentId, moduleId]) // One theta per enrollment-module pair
+    @@index([enrollmentId])
+    @@index([moduleId])
 }
 
 //
@@ -130,8 +174,8 @@ model Enrollment {
 model Item {
     id                 String        @id @default(cuid())
     courseId           String
+    moduleId           String
     externalQuestionId String // Spreadsheet "Question_ID" (stable within a course)
-    module             String // Spreadsheet "Module" (used as "concept" axis in MVP)
     bloom              BloomCategory // Standardized from spreadsheet Bloom_Cat
     stem               String // Rich text/markdown-safe; plain string in MVP
     reference          String? // Spreadsheet "Reference"
@@ -151,13 +195,14 @@ model Item {
 
     // Relations
     course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+    module    Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
     options   ItemOption[]
     quizLinks QuizItem[] // Explicit includes to quizzes
     responses Response[]
 
     @@unique([courseId, externalQuestionId]) // Stable per course
     @@index([courseId])
-    @@index([module])
+    @@index([moduleId])
     @@index([bloom])
     @@index([active])
 }
@@ -192,9 +237,9 @@ model Quiz {
     active      Boolean @default(true)
 
     // Filter-based scope (optional). Explicit selection via QuizItem is also supported.
-    // Modules correspond to Item.module strings from the bank.
-    includedModules String[]        @default([])
-    includedBlooms  BloomCategory[] @default([])
+    // Modules are now referenced by Module IDs
+    includedModuleIds String[]        @default([])
+    includedBlooms    BloomCategory[] @default([])
 
     // Audit
     createdById String?
