@@ -55,7 +55,6 @@ model User {
 
     // Relations
     enrollments Enrollment[]
-    attempts    Attempt[]
     quizzes     Quiz[]       @relation("QuizCreatedBy")
 }
 
@@ -116,6 +115,7 @@ model Enrollment {
     user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
     offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
     thetas   Theta[]
+    Attempt  Attempt[]
 
     @@unique([userId, offeringId])
     @@index([offeringId])
@@ -274,12 +274,12 @@ model QuizItem {
 //
 
 model Attempt {
-    id         String        @id @default(cuid())
-    quizId     String
-    userId     String
-    startedAt  DateTime      @default(now())
-    finishedAt DateTime?
-    status     AttemptStatus @default(IN_PROGRESS)
+    id           String        @id @default(cuid())
+    quizId       String
+    enrollmentId String
+    startedAt    DateTime      @default(now())
+    finishedAt   DateTime?
+    status       AttemptStatus @default(IN_PROGRESS)
 
     // Copy of quiz length at start for audit
     fixedLengthN Int
@@ -292,12 +292,12 @@ model Attempt {
     engineMasteryAtFinish Json?
 
     // Relations
-    quiz      Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
-    user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-    responses Response[]
+    quiz       Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+    enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+    responses  Response[]
 
     @@index([quizId])
-    @@index([userId])
+    @@index([enrollmentId])
     @@index([status])
     @@index([startedAt])
 }
