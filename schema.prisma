@@ -51,6 +51,8 @@ enum AttemptStatus {
 model User {
     id        String   @id @default(cuid())
     username  String   @unique
+    givenName String   @default("")
+    lastName  String   @default("")
     createdAt DateTime @default(now())
 
     // Relations
