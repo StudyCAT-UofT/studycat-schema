@@ -13,10 +13,6 @@ datasource db {
 }
 
 //
-// ========== Enums ==========
-//
-
-//
 // ========== Core Auth & Roster ==========
 //
 
@@ -111,6 +107,7 @@ model Module {
     offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
     items    Item[]
     thetas   Theta[]
+    quizModules QuizModule[]
 
     @@unique([offeringId, name]) // Unique per offering
     @@index([offeringId])
@@ -225,6 +222,7 @@ model Quiz {
     createdBy User?          @relation("QuizCreatedBy", fields: [createdById], references: [id])
     quizItems QuizItem[]
     attempts  Attempt[]
+    quizModules QuizModule[]
 
     @@index([offeringId])
     @@index([active])
@@ -240,6 +238,16 @@ model QuizItem {
 
     @@id([quizId, itemId])
     @@index([itemId])
+}
+
+model QuizModule {
+    quizId String
+    moduleId String 
+
+    quiz Quiz @relation(fields: [quizId], references: [id])
+    module Module @relation(fields: [moduleId], references: [id])
+
+    @@id([quizId, moduleId])
 }
 
 //
