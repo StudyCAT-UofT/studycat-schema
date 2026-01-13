@@ -16,15 +16,6 @@ datasource db {
 // ========== Enums ==========
 //
 
-enum BloomCategory {
-    REMEMBER
-    UNDERSTAND
-    APPLY
-    ANALYZE
-    EVALUATE
-    CREATE
-}
-
 enum OptionLabel {
     A
     B
@@ -172,7 +163,7 @@ model Item {
     courseId           String
     moduleId           String
     externalQuestionId String // Spreadsheet "Question_ID" (stable within a course)
-    bloom              BloomCategory // Standardized from spreadsheet Bloom_Cat
+    bloom              String // Standardized from spreadsheet Bloom_Cat
     stem               String // Rich text/markdown-safe; plain string in MVP
     reference          String? // Spreadsheet "Reference"
     figureUrl          String? // Spreadsheet "Figure" (URL)
@@ -235,7 +226,7 @@ model Quiz {
     // Filter-based scope (optional). Explicit selection via QuizItem is also supported.
     // Modules are now referenced by Module IDs
     includedModuleIds String[]        @default([])
-    includedBlooms    BloomCategory[] @default([])
+    includedBlooms    String          @default("")
 
     // Audit
     createdById String?
