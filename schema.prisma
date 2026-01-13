@@ -16,12 +16,6 @@ datasource db {
 // ========== Enums ==========
 //
 
-enum OfferingRole {
-    STUDENT
-    TA
-    INSTRUCTOR
-}
-
 enum BloomCategory {
     REMEMBER
     UNDERSTAND
@@ -110,7 +104,7 @@ model Enrollment {
     userId       String
     offeringId   String
     // Role at offering-level (can mirror the global role; useful if you later diverge)
-    offeringRole OfferingRole @default(STUDENT)
+    offeringRole String       @default("STUDENT")
     createdAt    DateTime     @default(now())
 
     // Relations
@@ -289,9 +283,9 @@ model Attempt {
     // Engine metadata and audit
     engineVersion         String? // Provided by engine or set by integrator
     // Snapshot of eligible items the client computed at start (IDs & filters)
-    scopeSnapshot         Json? // {includedModules, includedBlooms, eligibleItemIds: [...]}
+    scopeSnapshot         String? // {includedModules, includedBlooms, eligibleItemIds: [...]}
     // Final mastery vector returned by engine (per-module) at finish (optional)
-    engineMasteryAtFinish Json?
+    engineMasteryAtFinish String?
 
     // Relations
     quiz       Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
@@ -318,7 +312,7 @@ model Response {
     responseTimeMs Int // Convenience: answeredAt - askedAt in ms
 
     // Optional mastery vector snapshot (per-module) after *this* response
-    engineMasterySnapshot Json?
+    engineMasterySnapshot String?
 
     // Relations
     attempt    Attempt     @relation(fields: [attemptId], references: [id], onDelete: Cascade)
