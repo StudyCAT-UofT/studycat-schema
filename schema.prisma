@@ -16,12 +16,6 @@ datasource db {
 // ========== Enums ==========
 //
 
-enum AttemptStatus {
-    IN_PROGRESS
-    COMPLETED
-    ABANDONED
-}
-
 //
 // ========== Core Auth & Roster ==========
 //
@@ -259,7 +253,7 @@ model Attempt {
     enrollmentId String
     startedAt    DateTime      @default(now())
     finishedAt   DateTime?
-    status       AttemptStatus @default(IN_PROGRESS)
+    status       String        @default("IN_PROGRESS")
 
     // Copy of quiz length at start for audit
     fixedLengthN Int
