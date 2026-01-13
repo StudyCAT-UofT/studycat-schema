@@ -8,7 +8,7 @@ generator py {
 }
 
 datasource db {
-    provider = "postgresql"
+    provider = "sqlserver"
     url      = env("DATABASE_URL")
 }
 
@@ -49,7 +49,7 @@ enum AttemptStatus {
 //
 
 model User {
-    id         String   @id @default(cuid())
+    id         String   @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     username   String   @unique
     givenName  String   @default("")
     familyName String   @default("")
@@ -61,7 +61,7 @@ model User {
 }
 
 model Course {
-    id        String   @id @default(cuid())
+    id        String   @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     code      String
     title     String
     createdAt DateTime @default(now())
@@ -74,7 +74,7 @@ model Course {
 }
 
 model Term {
-    id        String    @id @default(cuid())
+    id        String    @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     name      String // e.g., "Fall 2025"
     startDate DateTime?
     endDate   DateTime?
@@ -86,7 +86,7 @@ model Term {
 }
 
 model CourseOffering {
-    id       String  @id @default(cuid())
+    id       String  @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     courseId String
     termId   String
     display  String?
@@ -106,7 +106,7 @@ model CourseOffering {
 }
 
 model Enrollment {
-    id           String       @id @default(cuid())
+    id           String       @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     userId       String
     offeringId   String
     // Role at offering-level (can mirror the global role; useful if you later diverge)
@@ -129,7 +129,7 @@ model Enrollment {
 //
 
 model Module {
-    id         String @id @default(cuid())
+    id         String @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     offeringId String
     name       String // Module name (e.g., "Module 1: Introduction")
 
@@ -149,7 +149,7 @@ model Module {
 //
 
 model Theta {
-    id           String @id @default(cuid())
+    id           String @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     enrollmentId String
     moduleId     String
     value        Float // Theta value
@@ -174,7 +174,7 @@ model Theta {
 //
 
 model Item {
-    id                 String        @id @default(cuid())
+    id                 String        @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     courseId           String
     moduleId           String
     externalQuestionId String // Spreadsheet "Question_ID" (stable within a course)
@@ -210,7 +210,7 @@ model Item {
 }
 
 model ItemOption {
-    id            String      @id @default(cuid())
+    id            String      @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     itemId        String
     label         OptionLabel // A, B, C, D
     text          String // Spreadsheet "Response_X"
@@ -232,7 +232,7 @@ model ItemOption {
 //
 
 model Quiz {
-    id          String  @id @default(cuid())
+    id          String  @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     offeringId  String
     title       String
     fixedLength Int // N items per attempt
@@ -276,7 +276,7 @@ model QuizItem {
 //
 
 model Attempt {
-    id           String        @id @default(cuid())
+    id           String        @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     quizId       String
     enrollmentId String
     startedAt    DateTime      @default(now())
@@ -305,7 +305,7 @@ model Attempt {
 }
 
 model Response {
-    id            String      @id @default(cuid())
+    id            String      @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     attemptId     String
     itemId        String
     // Selected option (redundant to itemOptionId for fast analytics & robustness)
