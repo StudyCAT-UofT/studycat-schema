@@ -62,8 +62,8 @@ model CourseOffering {
     createdAt DateTime @default(now())
 
     // Relations
-    course  Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-    term    Term         @relation(fields: [termId], references: [id], onDelete: Cascade)
+    course  Course       @relation(fields: [courseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    term    Term         @relation(fields: [termId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     enrolls Enrollment[]
     quizzes Quiz[]
     modules Module[]
@@ -82,8 +82,8 @@ model Enrollment {
     createdAt    DateTime     @default(now())
 
     // Relations
-    user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+    user     User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     thetas   Theta[]
     Attempt  Attempt[]
 
@@ -104,7 +104,7 @@ model Module {
     createdAt DateTime @default(now())
 
     // Relations
-    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     items    Item[]
     thetas   Theta[]
     quizModules QuizModule[]
@@ -127,8 +127,8 @@ model Theta {
     updatedAt DateTime @updatedAt
 
     // Relations
-    enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-    module     Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+    enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    module     Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
     @@unique([enrollmentId, moduleId]) // One theta per enrollment-module pair
     @@index([enrollmentId])
@@ -165,8 +165,8 @@ model Item {
     createdAt DateTime @default(now())
 
     // Relations
-    course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-    module    Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+    course    Course       @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    module    Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     options   ItemOption[]
     quizLinks QuizItem[] // Explicit includes to quizzes
     responses Response[]
@@ -187,7 +187,7 @@ model ItemOption {
     isCorrect     Boolean // Derived from bolded cell in sheet during import
 
     // Relations
-    item     Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+    item     Item       @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     Response Response[]
 
     @@unique([itemId, label])
@@ -208,8 +208,6 @@ model Quiz {
     active      Boolean @default(true)
 
     // Filter-based scope (optional). Explicit selection via QuizItem is also supported.
-    // Modules are now referenced by Module IDs
-    includedModuleIds String[]        @default([])
     includedBlooms    String          @default("")
 
     // Audit
@@ -218,7 +216,7 @@ model Quiz {
     updatedAt   DateTime @updatedAt
 
     // Relations
-    offering  CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+    offering  CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     createdBy User?          @relation("QuizCreatedBy", fields: [createdById], references: [id])
     quizItems QuizItem[]
     attempts  Attempt[]
@@ -233,8 +231,8 @@ model QuizItem {
     quizId String
     itemId String
 
-    quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
-    item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+    quiz Quiz @relation(fields: [quizId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    item Item @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
     @@id([quizId, itemId])
     @@index([itemId])
@@ -244,8 +242,8 @@ model QuizModule {
     quizId String
     moduleId String 
 
-    quiz Quiz @relation(fields: [quizId], references: [id])
-    module Module @relation(fields: [moduleId], references: [id])
+    quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    module Module @relation(fields: [moduleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@id([quizId, moduleId])
 }
@@ -274,8 +272,8 @@ model Attempt {
     engineMasteryAtFinish String?
 
     // Relations
-    quiz       Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
-    enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+    quiz       Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     responses  Response[]
 
     @@index([quizId])
@@ -301,9 +299,9 @@ model Response {
     engineMasterySnapshot String?
 
     // Relations
-    attempt    Attempt     @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-    item       Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
-    itemOption ItemOption? @relation(fields: [itemOptionId], references: [id], onDelete: SetNull)
+    attempt    Attempt     @relation(fields: [attemptId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    item       Item        @relation(fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    itemOption ItemOption? @relation(fields: [itemOptionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@index([attemptId])
     @@index([itemId])
