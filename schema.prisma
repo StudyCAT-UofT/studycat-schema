@@ -16,13 +16,6 @@ datasource db {
 // ========== Enums ==========
 //
 
-enum OptionLabel {
-    A
-    B
-    C
-    D
-}
-
 enum AttemptStatus {
     IN_PROGRESS
     COMPLETED
@@ -197,7 +190,7 @@ model Item {
 model ItemOption {
     id            String      @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     itemId        String
-    label         OptionLabel // A, B, C, D
+    label         String  // A, B, C, D
     text          String // Spreadsheet "Response_X"
     justification String? // Spreadsheet "Justification_X"
     isCorrect     Boolean // Derived from bolded cell in sheet during import
@@ -294,7 +287,7 @@ model Response {
     attemptId     String
     itemId        String
     // Selected option (redundant to itemOptionId for fast analytics & robustness)
-    selectedLabel OptionLabel
+    selectedLabel String 
     itemOptionId  String? // The actual ItemOption chosen (if you want FK safety)
 
     isCorrect      Boolean
