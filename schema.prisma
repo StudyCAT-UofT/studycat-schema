@@ -75,7 +75,7 @@ model CourseOffering {
 
 model Enrollment {
     id           String       @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    userId       String
+    userId       String       @db.UniqueIdentifier
     offeringId   String       @db.UniqueIdentifier
     // Role at offering-level (can mirror the global role; useful if you later diverge)
     offeringRole String       @default("STUDENT")
@@ -211,7 +211,7 @@ model Quiz {
     includedBlooms    String          @default("")
 
     // Audit
-    createdById String?
+    createdById String?  @db.UniqueIdentifier
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 
@@ -288,7 +288,7 @@ model Response {
     itemId        String      @db.UniqueIdentifier
     // Selected option (redundant to itemOptionId for fast analytics & robustness)
     selectedLabel String 
-    itemOptionId  String? // The actual ItemOption chosen (if you want FK safety)
+    itemOptionId  String?     @db.UniqueIdentifier // The actual ItemOption chosen (if you want FK safety)
 
     isCorrect      Boolean
     askedAt        DateTime // When question was shown
