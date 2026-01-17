@@ -83,7 +83,7 @@ model Enrollment {
 
     // Relations
     user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     thetas   Theta[]
     Attempt  Attempt[]
 
@@ -104,7 +104,7 @@ model Module {
     createdAt DateTime @default(now())
 
     // Relations
-    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     items    Item[]
     thetas   Theta[]
     quizModules QuizModule[]
@@ -165,7 +165,7 @@ model Item {
     createdAt DateTime @default(now())
 
     // Relations
-    course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+    course    Course       @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     module    Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
     options   ItemOption[]
     quizLinks QuizItem[] // Explicit includes to quizzes
@@ -217,7 +217,7 @@ model Quiz {
 
     // Relations
     offering  CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
-    createdBy User?          @relation("QuizCreatedBy", fields: [createdById], references: [id])
+    createdBy User?          @relation("QuizCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
     quizItems QuizItem[]
     attempts  Attempt[]
     quizModules QuizModule[]
@@ -301,7 +301,7 @@ model Response {
     // Relations
     attempt    Attempt     @relation(fields: [attemptId], references: [id], onDelete: Cascade)
     item       Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
-    itemOption ItemOption? @relation(fields: [itemOptionId], references: [id], onDelete: SetNull)
+    itemOption ItemOption? @relation(fields: [itemOptionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@index([attemptId])
     @@index([itemId])
