@@ -8,40 +8,8 @@ generator py {
 }
 
 datasource db {
-    provider = "postgresql"
+    provider = "sqlserver"
     url      = env("DATABASE_URL")
-}
-
-//
-// ========== Enums ==========
-//
-
-enum OfferingRole {
-    STUDENT
-    TA
-    INSTRUCTOR
-}
-
-enum BloomCategory {
-    REMEMBER
-    UNDERSTAND
-    APPLY
-    ANALYZE
-    EVALUATE
-    CREATE
-}
-
-enum OptionLabel {
-    A
-    B
-    C
-    D
-}
-
-enum AttemptStatus {
-    IN_PROGRESS
-    COMPLETED
-    ABANDONED
 }
 
 //
@@ -49,7 +17,7 @@ enum AttemptStatus {
 //
 
 model User {
-    id         String   @id @default(cuid())
+    id         String   @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     username   String   @unique
     givenName  String   @default("")
     familyName String   @default("")
@@ -61,7 +29,7 @@ model User {
 }
 
 model Course {
-    id        String   @id @default(cuid())
+    id        String   @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     code      String
     title     String
     createdAt DateTime @default(now())
@@ -74,7 +42,7 @@ model Course {
 }
 
 model Term {
-    id        String    @id @default(cuid())
+    id        String    @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     name      String // e.g., "Fall 2025"
     startDate DateTime?
     endDate   DateTime?
@@ -86,9 +54,9 @@ model Term {
 }
 
 model CourseOffering {
-    id       String  @id @default(cuid())
-    courseId String
-    termId   String
+    id       String  @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    courseId String  @db.UniqueIdentifier
+    termId   String  @db.UniqueIdentifier 
     display  String?
 
     createdAt DateTime @default(now())
@@ -106,16 +74,16 @@ model CourseOffering {
 }
 
 model Enrollment {
-    id           String       @id @default(cuid())
-    userId       String
-    offeringId   String
+    id           String       @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    userId       String       @db.UniqueIdentifier
+    offeringId   String       @db.UniqueIdentifier
     // Role at offering-level (can mirror the global role; useful if you later diverge)
-    offeringRole OfferingRole @default(STUDENT)
+    offeringRole String       @default("STUDENT")
     createdAt    DateTime     @default(now())
 
     // Relations
     user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     thetas   Theta[]
     Attempt  Attempt[]
 
@@ -129,16 +97,17 @@ model Enrollment {
 //
 
 model Module {
-    id         String @id @default(cuid())
-    offeringId String
+    id         String @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    offeringId String @db.UniqueIdentifier
     name       String // Module name (e.g., "Module 1: Introduction")
 
     createdAt DateTime @default(now())
 
     // Relations
-    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+    offering CourseOffering @relation(fields: [offeringId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     items    Item[]
     thetas   Theta[]
+    quizModules QuizModule[]
 
     @@unique([offeringId, name]) // Unique per offering
     @@index([offeringId])
@@ -149,9 +118,9 @@ model Module {
 //
 
 model Theta {
-    id           String @id @default(cuid())
-    enrollmentId String
-    moduleId     String
+    id           String @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    enrollmentId String @db.UniqueIdentifier
+    moduleId     String @db.UniqueIdentifier
     value        Float // Theta value
 
     createdAt DateTime @default(now())
@@ -174,11 +143,11 @@ model Theta {
 //
 
 model Item {
-    id                 String        @id @default(cuid())
-    courseId           String
-    moduleId           String
+    id                 String        @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    courseId           String        @db.UniqueIdentifier
+    moduleId           String        @db.UniqueIdentifier
     externalQuestionId String // Spreadsheet "Question_ID" (stable within a course)
-    bloom              BloomCategory // Standardized from spreadsheet Bloom_Cat
+    bloom              String // Standardized from spreadsheet Bloom_Cat
     stem               String // Rich text/markdown-safe; plain string in MVP
     reference          String? // Spreadsheet "Reference"
     figureUrl          String? // Spreadsheet "Figure" (URL)
@@ -196,7 +165,7 @@ model Item {
     createdAt DateTime @default(now())
 
     // Relations
-    course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+    course    Course       @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
     module    Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
     options   ItemOption[]
     quizLinks QuizItem[] // Explicit includes to quizzes
@@ -210,9 +179,9 @@ model Item {
 }
 
 model ItemOption {
-    id            String      @id @default(cuid())
-    itemId        String
-    label         OptionLabel // A, B, C, D
+    id            String      @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    itemId        String      @db.UniqueIdentifier
+    label         String  // A, B, C, D
     text          String // Spreadsheet "Response_X"
     justification String? // Spreadsheet "Justification_X"
     isCorrect     Boolean // Derived from bolded cell in sheet during import
@@ -232,27 +201,26 @@ model ItemOption {
 //
 
 model Quiz {
-    id          String  @id @default(cuid())
-    offeringId  String
+    id          String  @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    offeringId  String  @db.UniqueIdentifier
     title       String
     fixedLength Int // N items per attempt
     active      Boolean @default(true)
 
     // Filter-based scope (optional). Explicit selection via QuizItem is also supported.
-    // Modules are now referenced by Module IDs
-    includedModuleIds String[]        @default([])
-    includedBlooms    BloomCategory[] @default([])
+    includedBlooms    String          @default("")
 
     // Audit
-    createdById String?
+    createdById String?  @db.UniqueIdentifier
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 
     // Relations
     offering  CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
-    createdBy User?          @relation("QuizCreatedBy", fields: [createdById], references: [id])
+    createdBy User?          @relation("QuizCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
     quizItems QuizItem[]
     attempts  Attempt[]
+    quizModules QuizModule[]
 
     @@index([offeringId])
     @@index([active])
@@ -260,8 +228,8 @@ model Quiz {
 
 model QuizItem {
     // Explicit include of particular items into a quiz scope
-    quizId String
-    itemId String
+    quizId String  @db.UniqueIdentifier
+    itemId String  @db.UniqueIdentifier
 
     quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
     item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
@@ -270,18 +238,28 @@ model QuizItem {
     @@index([itemId])
 }
 
+model QuizModule {
+    quizId String    @db.UniqueIdentifier
+    moduleId String  @db.UniqueIdentifier
+
+    quiz Quiz @relation(fields: [quizId], references: [id])
+    module Module @relation(fields: [moduleId], references: [id])
+
+    @@id([quizId, moduleId])
+}
+
 //
 // ========== Attempts & Responses ==========
 // Unlimited attempts, autosave, per-response timing, correctness, engine snapshots.
 //
 
 model Attempt {
-    id           String        @id @default(cuid())
-    quizId       String
-    enrollmentId String
+    id           String        @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    quizId       String        @db.UniqueIdentifier
+    enrollmentId String        @db.UniqueIdentifier
     startedAt    DateTime      @default(now())
     finishedAt   DateTime?
-    status       AttemptStatus @default(IN_PROGRESS)
+    status       String        @default("IN_PROGRESS")
 
     // Copy of quiz length at start for audit
     fixedLengthN Int
@@ -289,9 +267,9 @@ model Attempt {
     // Engine metadata and audit
     engineVersion         String? // Provided by engine or set by integrator
     // Snapshot of eligible items the client computed at start (IDs & filters)
-    scopeSnapshot         Json? // {includedModules, includedBlooms, eligibleItemIds: [...]}
+    scopeSnapshot         String? // {includedModules, includedBlooms, eligibleItemIds: [...]}
     // Final mastery vector returned by engine (per-module) at finish (optional)
-    engineMasteryAtFinish Json?
+    engineMasteryAtFinish String?
 
     // Relations
     quiz       Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
@@ -305,12 +283,12 @@ model Attempt {
 }
 
 model Response {
-    id            String      @id @default(cuid())
-    attemptId     String
-    itemId        String
+    id            String      @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    attemptId     String      @db.UniqueIdentifier
+    itemId        String      @db.UniqueIdentifier
     // Selected option (redundant to itemOptionId for fast analytics & robustness)
-    selectedLabel OptionLabel
-    itemOptionId  String? // The actual ItemOption chosen (if you want FK safety)
+    selectedLabel String 
+    itemOptionId  String?     @db.UniqueIdentifier // The actual ItemOption chosen (if you want FK safety)
 
     isCorrect      Boolean
     askedAt        DateTime // When question was shown
@@ -318,12 +296,12 @@ model Response {
     responseTimeMs Int // Convenience: answeredAt - askedAt in ms
 
     // Optional mastery vector snapshot (per-module) after *this* response
-    engineMasterySnapshot Json?
+    engineMasterySnapshot String?
 
     // Relations
     attempt    Attempt     @relation(fields: [attemptId], references: [id], onDelete: Cascade)
     item       Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
-    itemOption ItemOption? @relation(fields: [itemOptionId], references: [id], onDelete: SetNull)
+    itemOption ItemOption? @relation(fields: [itemOptionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
     @@index([attemptId])
     @@index([itemId])
