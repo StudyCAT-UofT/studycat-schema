@@ -243,6 +243,9 @@ model QuizModule {
     quizId String    @db.UniqueIdentifier
     moduleId String  @db.UniqueIdentifier
 
+    // Theta value that is considered 'mastery'
+    masteryThreshold Float 
+
     quiz Quiz @relation(fields: [quizId], references: [id])
     module Module @relation(fields: [moduleId], references: [id])
 
