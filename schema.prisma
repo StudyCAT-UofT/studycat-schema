@@ -207,6 +207,7 @@ model Quiz {
     fixedLength Int // N items per attempt
     active      Boolean @default(true)
     feedbackVisibility String @default("full")
+    shuffled    Boolean @default(false)
 
     // Filter-based scope (optional). Explicit selection via QuizItem is also supported.
     includedBlooms    String          @default("")
