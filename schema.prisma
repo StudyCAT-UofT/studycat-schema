@@ -22,6 +22,7 @@ model User {
     givenName  String   @default("")
     familyName String   @default("")
     createdAt  DateTime @default(now())
+    isAdmin    Boolean  @default(false)
 
     // Relations
     enrollments Enrollment[]
