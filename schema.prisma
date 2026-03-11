@@ -273,9 +273,9 @@ model Attempt {
     // Engine metadata and audit
     engineVersion         String? // Provided by engine or set by integrator
     // Snapshot of eligible items the client computed at start (IDs & filters)
-    scopeSnapshot         String? // {includedModules, includedBlooms, eligibleItemIds: [...]}
+    scopeSnapshot         String? @db.NVarChar(Max) // {includedModules, includedBlooms, eligibleItemIds: [...]}
     // Final mastery vector returned by engine (per-module) at finish (optional)
-    engineMasteryAtFinish String?
+    engineMasteryAtFinish String? @db.NVarChar(Max)
 
     // Relations
     quiz       Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
