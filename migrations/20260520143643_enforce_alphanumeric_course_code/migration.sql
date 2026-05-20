@@ -1,0 +1,1 @@
+ALTER TABLE [dbo].[Course] ADD CONSTRAINT [check_course_code_alphanumeric] CHECK ([code] NOT LIKE '%[^a-zA-Z0-9]%');
