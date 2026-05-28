@@ -250,7 +250,7 @@ model QuizModule {
     // Theta value that is considered 'mastery'
     masteryThreshold Float 
 
-    quiz Quiz @relation(fields: [quizId], references: [id])
+    quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
     module Module @relation(fields: [moduleId], references: [id])
 
     @@id([quizId, moduleId])
