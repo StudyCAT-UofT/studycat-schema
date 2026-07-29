@@ -1,0 +1,23 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[Item] ALTER COLUMN [stem] NVARCHAR(max) NOT NULL;
+
+-- AlterTable
+ALTER TABLE [dbo].[ItemOption] ALTER COLUMN [text] NVARCHAR(max) NOT NULL;
+ALTER TABLE [dbo].[ItemOption] ALTER COLUMN [justification] NVARCHAR(max) NULL;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

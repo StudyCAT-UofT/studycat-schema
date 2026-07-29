@@ -150,7 +150,7 @@ model Item {
     moduleId           String        @db.UniqueIdentifier
     externalQuestionId String // Spreadsheet "Question_ID" (stable within a course)
     bloom              String // Standardized from spreadsheet Bloom_Cat
-    stem               String // Rich text/markdown-safe; plain string in MVP
+    stem               String        @db.NVarChar(Max) // Rich text/markdown-safe; plain string in MVP
     reference          String? // Spreadsheet "Reference"
     figureUrl          String? // Spreadsheet "Figure" (URL)
     ptBi               Float? // Spreadsheet "PtBi"
@@ -184,8 +184,8 @@ model ItemOption {
     id            String      @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
     itemId        String      @db.UniqueIdentifier
     label         String  // A, B, C, D
-    text          String // Spreadsheet "Response_X"
-    justification String? // Spreadsheet "Justification_X"
+    text          String      @db.NVarChar(Max) // Spreadsheet "Response_X"
+    justification String?     @db.NVarChar(Max) // Spreadsheet "Justification_X"
     isCorrect     Boolean // Derived from bolded cell in sheet during import
 
     // Relations
