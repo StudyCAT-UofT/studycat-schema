@@ -8,7 +8,7 @@ generator py {
 }
 
 datasource db {
-    provider = "sqlserver"
+    provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
@@ -17,7 +17,7 @@ datasource db {
 //
 
 model User {
-    id         String   @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    id         String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
     username   String   @unique
     givenName  String   @default("")
     familyName String   @default("")
@@ -30,7 +30,7 @@ model User {
 }
 
 model Course {
-    id        String   @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    id        String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
     code      String /// Note: Enforced alphanumeric codes only through custom SQL migration
     title     String
     createdAt DateTime @default(now())
@@ -43,7 +43,7 @@ model Course {
 }
 
 model Term {
-    id        String    @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
+    id        String    @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
     name      String // e.g., "Fall 2025"
     startDate DateTime?
     endDate   DateTime?
@@ -55,9 +55,9 @@ model Term {
 }
 
 model CourseOffering {
-    id       String  @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    courseId String  @db.UniqueIdentifier
-    termId   String  @db.UniqueIdentifier 
+    id       String  @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    courseId String  @db.Uuid
+    termId   String  @db.Uuid 
     display  String?
 
     createdAt DateTime @default(now())
@@ -75,9 +75,9 @@ model CourseOffering {
 }
 
 model Enrollment {
-    id           String       @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    userId       String       @db.UniqueIdentifier
-    offeringId   String       @db.UniqueIdentifier
+    id           String       @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    userId       String       @db.Uuid
+    offeringId   String       @db.Uuid
     // Role at offering-level (can mirror the global role; useful if you later diverge)
     offeringRole String       @default("STUDENT")
     createdAt    DateTime     @default(now())
@@ -99,8 +99,8 @@ model Enrollment {
 //
 
 model Module {
-    id         String @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    offeringId String @db.UniqueIdentifier
+    id         String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    offeringId String @db.Uuid
     name       String // Module name (e.g., "Module 1: Introduction")
 
     createdAt DateTime @default(now())
@@ -120,9 +120,9 @@ model Module {
 //
 
 model Theta {
-    id           String @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    enrollmentId String @db.UniqueIdentifier
-    moduleId     String @db.UniqueIdentifier
+    id           String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    enrollmentId String @db.Uuid
+    moduleId     String @db.Uuid
     value        Float // Theta value
 
     createdAt DateTime @default(now())
@@ -145,12 +145,12 @@ model Theta {
 //
 
 model Item {
-    id                 String        @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    courseId           String        @db.UniqueIdentifier
-    moduleId           String        @db.UniqueIdentifier
+    id                 String        @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    courseId           String        @db.Uuid
+    moduleId           String        @db.Uuid
     externalQuestionId String // Spreadsheet "Question_ID" (stable within a course)
     bloom              String // Standardized from spreadsheet Bloom_Cat
-    stem               String        @db.NVarChar(Max) // Rich text/markdown-safe; plain string in MVP
+    stem               String // Rich text/markdown-safe; plain string in MVP
     reference          String? // Spreadsheet "Reference"
     figureUrl          String? // Spreadsheet "Figure" (URL)
     ptBi               Float? // Spreadsheet "PtBi"
@@ -181,11 +181,11 @@ model Item {
 }
 
 model ItemOption {
-    id            String      @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    itemId        String      @db.UniqueIdentifier
+    id            String      @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    itemId        String      @db.Uuid
     label         String  // A, B, C, D
-    text          String      @db.NVarChar(Max) // Spreadsheet "Response_X"
-    justification String?     @db.NVarChar(Max) // Spreadsheet "Justification_X"
+    text          String // Spreadsheet "Response_X"
+    justification String? // Spreadsheet "Justification_X"
     isCorrect     Boolean // Derived from bolded cell in sheet during import
 
     // Relations
@@ -203,8 +203,8 @@ model ItemOption {
 //
 
 model Quiz {
-    id          String  @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    offeringId  String  @db.UniqueIdentifier
+    id          String  @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    offeringId  String  @db.Uuid
     title       String
     fixedLength Int // N items per attempt
     active      Boolean @default(true)
@@ -216,7 +216,7 @@ model Quiz {
     includedBlooms    String          @default("")
 
     // Audit
-    createdById String?  @db.UniqueIdentifier
+    createdById String?  @db.Uuid
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 
@@ -233,8 +233,8 @@ model Quiz {
 
 model QuizItem {
     // Explicit include of particular items into a quiz scope
-    quizId String  @db.UniqueIdentifier
-    itemId String  @db.UniqueIdentifier
+    quizId String  @db.Uuid
+    itemId String  @db.Uuid
 
     quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
     item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
@@ -244,8 +244,8 @@ model QuizItem {
 }
 
 model QuizModule {
-    quizId String    @db.UniqueIdentifier
-    moduleId String  @db.UniqueIdentifier
+    quizId String    @db.Uuid
+    moduleId String  @db.Uuid
 
     // Theta value that is considered 'mastery'
     masteryThreshold Float 
@@ -262,9 +262,9 @@ model QuizModule {
 //
 
 model Attempt {
-    id           String        @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    quizId       String        @db.UniqueIdentifier
-    enrollmentId String        @db.UniqueIdentifier
+    id           String        @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    quizId       String        @db.Uuid
+    enrollmentId String        @db.Uuid
     startedAt    DateTime      @default(now())
     finishedAt   DateTime?
     status       String        @default("IN_PROGRESS")
@@ -275,9 +275,9 @@ model Attempt {
     // Engine metadata and audit
     engineVersion         String? // Provided by engine or set by integrator
     // Snapshot of eligible items the client computed at start (IDs & filters)
-    scopeSnapshot         String? @db.NVarChar(Max) // {includedModules, includedBlooms, eligibleItemIds: [...]}
+    scopeSnapshot         String? // {includedModules, includedBlooms, eligibleItemIds: [...]}
     // Final mastery vector returned by engine (per-module) at finish (optional)
-    engineMasteryAtFinish String? @db.NVarChar(Max)
+    engineMasteryAtFinish String?
 
     // Relations
     quiz       Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
@@ -291,12 +291,12 @@ model Attempt {
 }
 
 model Response {
-    id            String      @id @db.UniqueIdentifier @default(dbgenerated("NEWID()"))
-    attemptId     String      @db.UniqueIdentifier
-    itemId        String      @db.UniqueIdentifier
+    id            String      @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    attemptId     String      @db.Uuid
+    itemId        String      @db.Uuid
     // Selected option (redundant to itemOptionId for fast analytics & robustness)
     selectedLabel String 
-    itemOptionId  String?     @db.UniqueIdentifier // The actual ItemOption chosen (if you want FK safety)
+    itemOptionId  String?     @db.Uuid // The actual ItemOption chosen (if you want FK safety)
 
     isCorrect      Boolean
     askedAt        DateTime // When question was shown
